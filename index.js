@@ -4,13 +4,15 @@ const nodemailer = require("nodemailer");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
+const axios = require("axios");
 const { body, validationResult } = require("express-validator");
 require("dotenv").config();
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({origin: "https://your-frontend-site.netlify.app", // replace with your deployed Netlify domain
+    methods: ["POST"],}));
 app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
@@ -18,17 +20,18 @@ app.use(morgan("dev"));
 // Rate limiter to prevent spam
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 5, // max 5 requests per minute
+  max: 5,
 });
 app.use("/api/contact", limiter);
 
-// Email endpoint
+// POST /api/contact
 app.post(
   "/api/contact",
   [
     body("name").notEmpty().withMessage("Name is required"),
     body("email").isEmail().withMessage("Valid email is required"),
     body("message").isLength({ min: 10 }).withMessage("Message is too short"),
+    body("recaptchaToken").notEmpty().withMessage("CAPTCHA is required"),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -36,8 +39,23 @@ app.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, email, message } = req.body;
+    const { name, email, message, recaptchaToken } = req.body;
 
+    // ✅ Verify reCAPTCHA token
+    try {
+      const response = await axios.post(
+        `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${recaptchaToken}`
+      );
+
+      if (!response.data.success) {
+        return res.status(400).json({ error: "CAPTCHA verification failed." });
+      }
+    } catch (error) {
+      console.error("reCAPTCHA error:", error);
+      return res.status(500).json({ error: "Error verifying CAPTCHA." });
+    }
+
+    // ✅ Send the email
     try {
       const transporter = nodemailer.createTransport({
         service: "gmail",
