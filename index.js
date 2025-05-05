@@ -11,7 +11,7 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-app.use(cors({origin: "https://your-frontend-site.netlify.app", // replace with your deployed Netlify domain
+app.use(cors({origin: "https://fenrirstudiosllc.netlify.app", // replace with your deployed Netlify domain
     methods: ["POST"],}));
 app.use(express.json());
 app.use(helmet());
