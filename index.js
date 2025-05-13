@@ -8,10 +8,11 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // Allow CORS from frontend
-const allowedOrigin = "https://fenrirstudios.netlify.app"; // Replace with your frontend URL
 app.use(cors({
-  origin: [allowedOrigin, "http://localhost:3000"],
-  methods: ["GET", "POST"],
+  origin: function (origin, callback) {
+    callback(null, true); // Allow all origins for development — restrict in production
+  },
+  methods: ["GET", "POST", "OPTIONS"],
   credentials: true,
 }));
 
@@ -22,6 +23,9 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
 });
+
+// Handle preflight OPTIONS request
+app.options("/api/contact", cors());
 
 // POST /api/contact - Handle form submission
 app.post("/api/contact", async (req, res) => {
