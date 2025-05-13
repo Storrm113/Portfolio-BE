@@ -7,13 +7,10 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Allow CORS from frontend
+// Allow all origins for testing
 app.use(cors({
-  origin: function (origin, callback) {
-    callback(null, true); // Allow all origins for development — restrict in production
-  },
+  origin: '*',
   methods: ["GET", "POST", "OPTIONS"],
-  credentials: true,
 }));
 
 // Middleware
@@ -24,19 +21,14 @@ app.get("/", (req, res) => {
   res.send("API is running 🚀");
 });
 
-// Handle preflight OPTIONS request
-app.options("/api/contact", cors());
-
 // POST /api/contact - Handle form submission
 app.post("/api/contact", async (req, res) => {
   const { name, email, message, recaptchaToken } = req.body;
 
-  // Optional: Verify Google reCAPTCHA server-side here
-
   try {
     // Setup email transporter
     const transporter = nodemailer.createTransport({
-      service: "gmail", // or use a custom SMTP provider
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
