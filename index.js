@@ -7,8 +7,15 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
+// Allow CORS from frontend
+const allowedOrigin = "https://fenrirstudios.netlify.app"; // Replace with your frontend URL
+app.use(cors({
+  origin: [allowedOrigin, "http://localhost:3000"],
+  methods: ["GET", "POST"],
+  credentials: true,
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // Optional Home Route
