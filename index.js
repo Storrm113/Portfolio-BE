@@ -1,4 +1,3 @@
-// index.js (Backend API with Express and Nodemailer)
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
@@ -11,22 +10,24 @@ const PORT = process.env.PORT || 10000;
 app.use(cors({
   origin: '*',
   methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
 }));
 
-// Middleware
 app.use(express.json());
 
-// Optional Home Route
+// Optional home route
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
 });
 
-// POST /api/contact - Handle form submission
+// Handle preflight OPTIONS request
+app.options("/api/contact", cors());
+
+// POST route
 app.post("/api/contact", async (req, res) => {
   const { name, email, message, recaptchaToken } = req.body;
 
   try {
-    // Setup email transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -35,7 +36,6 @@ app.post("/api/contact", async (req, res) => {
       },
     });
 
-    // Send the email
     await transporter.sendMail({
       from: email,
       to: process.env.EMAIL_USER,
@@ -50,7 +50,6 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
-// Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
